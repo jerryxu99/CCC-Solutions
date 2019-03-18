@@ -1,0 +1,93 @@
+import java.util.ArrayList;
+import java.util.Scanner;
+
+//CCC 2016 S3
+public class Main {
+    static Scanner scan = new Scanner(System.in);
+    static int N = scan.nextInt();//num of restaurants
+    static int M = scan.nextInt();//Num Of Pho Restaurants
+    static int totalDistance = 0;
+    static ArrayList<ArrayList<Integer>> network = new ArrayList<ArrayList<Integer>>();
+    static boolean[] phoRestaurant = new boolean[N];
+    static boolean[] marked = new boolean[N];
+    static int[] furthest = {-1, -1}; //{node, distance}
+
+    public static int indexOf(boolean[] array, boolean target) {
+        int b = 0;
+        for (int i = 0; i < array.length; i++) {
+            if (array[i] == target) {
+                b = i;
+                break;
+            }
+        }
+        return b;
+    }
+
+    public static void mark(int node, int previous) {
+        if (phoRestaurant[node]) {
+            marked[node] = true;
+        }
+        for (int i : network.get(node)) {
+            if (i == previous) {
+                continue;
+            }
+
+            mark(i, node);
+
+        }
+        if (marked[node]) {
+            marked[previous] = true;
+            totalDistance += 2;
+        }
+    }
+    public static void furthestNode(int node, int previous, int distance) {
+        if (phoRestaurant[node] && distance > furthest[1]) {
+            furthest[0] = node;
+            furthest[1] = distance;
+        }
+        for (int i : network.get(node)) {
+            if (i == previous) {
+                continue;
+            }
+            furthestNode(i, node, distance+1);
+        }
+    }
+
+    public static void main(String[] args) {
+
+
+        for (int i = 0; i < M; i++) {
+            phoRestaurant[scan.nextInt()] = true;
+        }
+        for (int i = 0; i < N; i++) {
+            network.add(new ArrayList<Integer>());
+        }
+
+        for (int i = 0; i < N-1; i++) {
+            int a = scan.nextInt();
+            int b = scan.nextInt();
+            network.get(a).add(b);
+            network.get(b).add(a);
+        }
+
+        /*for (ArrayList<Integer> list : network) {
+            System.out.println(list.get(0) + " " + list.get(1));
+        }*/
+
+        int start = indexOf(phoRestaurant, true);
+        mark(start, start);
+
+        //since mark() adds to for a bridge from 0 to 0, we need to subtract 2
+        totalDistance -= 2;
+
+        //calculate longest road from pho restaurant to another
+        //find starting node by picking a random node and seeing which node is furthest from it
+        furthestNode(start, start, 0);
+
+        furthestNode(furthest[0], furthest[0], 0);
+
+        System.out.print(totalDistance - furthest[1]);
+
+
+    }
+}
